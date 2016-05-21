@@ -23,7 +23,6 @@ activity$date <- as.Date(activity$date)
 ```
 
 
-
 ## What is mean total number of steps taken per day?
 
 ```r
@@ -78,13 +77,25 @@ abline(v = Interval.max.steps,col = "red", lwd = 2, lty = 2 )
 ```
 
 ![](PA1_template_files/figure-html/Daily Pattern-1.png) 
+
 The most steps was taken during interval 835, as indicated by the red dotted line in the trend.
 
 
 ## Imputing missing values
 
+```r
+# 1. Calculate and report the total number of missing values in the dataset 
+# (i.e. the total number of rows with `NA`s)
+sum(is.na(activity))
+```
 
+```
+## [1] 2304
+```
 
+There are 2304 missing values, which is a small proportion (4.4%) of the data.
+
+The missing data would be filled with the **median of 10765 steps.**
 
 ## Are there differences in activity patterns between weekdays and weekends?
 

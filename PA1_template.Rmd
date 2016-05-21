@@ -8,6 +8,8 @@ output:
 
 ## Loading and preprocessing the data
 ```{r ETL Data}
+library(dplyr)
+
 unzip("activity.zip")
 activity <- read.csv("activity.csv")
 # Check structure for date format
@@ -18,10 +20,8 @@ activity$date <- as.Date(activity$date)
 ```
 
 
-
 ## What is mean total number of steps taken per day?
 ```{r Steps per day}
-library(dplyr)
 # Group by day
 steps.day <- activity %>% group_by(date) %>% summarise(DailySteps = sum(steps))
 
@@ -57,11 +57,18 @@ The most steps was taken during interval `r Interval.max.steps`, as indicated by
 
 
 ## Imputing missing values
+
+There are `r sum(is.na(activity))` missing values, which is a small proportion (`r signif(mean(is.na(activity))*100, 2)`%) of the data.
+
+The missing data would be filled with the **median of `r steps.day.median` steps.**
+
 ```{r Impute}
+# Create a new dataset that is equal to the original dataset but with the missing data filled in.
+activity.new <- activity
+# combine the datasets by interval and then update the columns
+df <- activity.new %>% merge(activity.new, steps.interval, by.x = "interval", by.y = "interval")
 
 ```
-
-
 
 ## Are there differences in activity patterns between weekdays and weekends?
 ```{r Weekly Pattern}
