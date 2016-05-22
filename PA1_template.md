@@ -77,7 +77,7 @@ The most steps was taken during interval 835, as indicated by the red dotted lin
 
 There are 2304 missing values, which is a small proportion (4.4%) of the data.
 
-The missing data would be filled with the **median of 10765 steps.**
+The missing data would be filled with the average value of the 5-minute interval.
 
 
 ```r
@@ -119,12 +119,49 @@ abline(v=steps.day.impute.median, col = "green", lwd = 2, lty = 2 )
 
 ![](PA1_template_files/figure-html/Impute-1.png) 
 
-*  The mean total number of steps per day is 9,388.23 steps, indicated as red line on the histogram.
+After imputing the missing values with the average of each of the 5-minute intervals, the following changes are observed:
 
-*  The median total number of steps per day is 10,395 steps, indicated by the green line on the histogram.
+*  The mean total number of steps per day reduced from 10,766.2 steps to 9,388.23 steps, as indicated by red line on the histogram.
 
-```
+*  The median total number of steps per day reduced from 10,765 steps to 10,395 steps, indicated by the green line on the histogram.
+
+The overall effect is visible in the lower values of the distribution in the histogram.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
+
+```r
+# Add column to show type of day week/weekend
+table(weekdays(steps.day.impute$date))
+```
+
+```
+## 
+##    Friday    Monday  Saturday    Sunday  Thursday   Tuesday Wednesday 
+##         9         9         8         8         9         9         9
+```
+
+```r
+Weekend <- c("Saturday", "Sunday")
+
+activity.impute <- mutate(activity.impute, 
+                           DayType = as.factor(
+                                   ifelse(weekdays(activity.impute$date) %in% Weekend,
+                                            "Weekend", "Week")))
+
+steps.interval.impute <- activity.impute %>% 
+        group_by(interval, DayType) %>% 
+        summarise(AvgSteps = as.integer(ceiling(mean(steps, na.rm = TRUE))))
+
+library(lattice)
+xyplot(steps.interval.impute$AvgSteps ~ steps.interval.impute$interval |
+        steps.interval.impute$DayType,
+        type = c("l", "smooth"),
+        xlab = "Interval (5-minutes)", 
+        ylab = "Average Steps")
+```
+
+![](PA1_template_files/figure-html/Weekly Pattern-1.png) 
+
+Looks like an desk jockey that gets around on weekends.
 

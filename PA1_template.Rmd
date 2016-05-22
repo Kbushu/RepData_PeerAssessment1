@@ -62,7 +62,7 @@ The most steps was taken during interval `r Interval.max.steps`, as indicated by
 
 There are `r sum(is.na(activity))` missing values, which is a small proportion (`r signif(mean(is.na(activity))*100, 2)`%) of the data.
 
-The missing data would be filled with the **median of `r steps.day.median` steps.**
+The missing data would be filled with the average value of the 5-minute interval.
 
 ```{r Impute}
 # Create a new dataset that is equal to the original dataset but with the missing data filled in.
@@ -94,14 +94,37 @@ abline(v=steps.day.impute.median, col = "green", lwd = 2, lty = 2 )
 
 ```
 
-*  The mean total number of steps per day is `r format(signif(steps.day.impute.mean,6),big.mark = ",")` steps, indicated as red line on the histogram.
+After imputing the missing values with the average of each of the 5-minute intervals, the following changes are observed:
 
-*  The median total number of steps per day is `r format(signif(steps.day.impute.median,6),big.mark = ",")` steps, indicated by the green line on the histogram.
+*  The mean total number of steps per day reduced from `r format(signif(steps.day.mean,6),big.mark = ",")` steps to `r format(signif(steps.day.impute.mean,6),big.mark = ",")` steps, as indicated by red line on the histogram.
 
-```
+*  The median total number of steps per day reduced from `r format(signif(steps.day.median,6),big.mark = ",")` steps to `r format(signif(steps.day.impute.median,6),big.mark = ",")` steps, indicated by the green line on the histogram.
+
+The overall effect is visible in the lower values of the distribution in the histogram.
 
 ## Are there differences in activity patterns between weekdays and weekends?
-```{r Weekly Pattern}
 
+```{r Weekly Pattern}
+# Add column to show type of day week/weekend
+table(weekdays(steps.day.impute$date))
+Weekend <- c("Saturday", "Sunday")
+
+activity.impute <- mutate(activity.impute, 
+                           DayType = as.factor(
+                                   ifelse(weekdays(activity.impute$date) %in% Weekend,
+                                            "Weekend", "Week")))
+
+steps.interval.impute <- activity.impute %>% 
+        group_by(interval, DayType) %>% 
+        summarise(AvgSteps = as.integer(ceiling(mean(steps, na.rm = TRUE))))
+
+library(lattice)
+xyplot(steps.interval.impute$AvgSteps ~ steps.interval.impute$interval |
+        steps.interval.impute$DayType,
+        type = c("l", "smooth"),
+        xlab = "Interval (5-minutes)", 
+        ylab = "Average Steps")
 ```
+
+Looks like an desk jockey that gets around on weekends.
 
