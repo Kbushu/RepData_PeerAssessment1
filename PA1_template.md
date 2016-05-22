@@ -23,8 +23,7 @@ library(dplyr)
 ```r
 unzip("activity.zip")
 activity <- read.csv("activity.csv")
-# Check structure for date format
-# str(activity)
+
 # Convert date from factor to date format
 activity$date <- as.Date(activity$date)
 ```
@@ -44,7 +43,6 @@ hist(steps.day$DailySteps,
              ylab = "Frequency", 
              main = "Steps per Day")
 
-# Explore data
 steps.day.mean <- mean(steps.day$DailySteps, na.rm = TRUE)
 steps.day.median <- median(steps.day$DailySteps, na.rm = TRUE)
 abline(v=steps.day.mean, col = "red", lwd = 2, lty = 1 )
@@ -60,10 +58,17 @@ abline(v=steps.day.median, col = "green", lwd = 2, lty = 2 )
 ## What is the average daily activity pattern?
 
 ```r
-steps.interval <- activity %>% group_by(interval) %>% summarise(AvgSteps = as.integer(ceiling(mean(steps, na.rm = TRUE))))
-with(steps.interval, plot(x = interval, y= AvgSteps, type= "l", xlab= "Daily 5 minute intervals", ylab="Steps"))
+steps.interval <- activity %>% 
+        group_by(interval) %>% 
+        summarise(AvgSteps = as.integer(ceiling(mean(steps, na.rm = TRUE))))
 
-# 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+with(steps.interval, plot(x = interval, 
+                          y= AvgSteps, 
+                          type= "l", 
+                          xlab= "Daily 5 minute intervals", 
+                          ylab="Steps"))
+
+# maximum number of steps
 Interval.max.steps <- steps.interval$interval[which.max(steps.interval$AvgSteps)]
 abline(v = Interval.max.steps,col = "red", lwd = 2, lty = 2 )
 ```
@@ -72,18 +77,14 @@ abline(v = Interval.max.steps,col = "red", lwd = 2, lty = 2 )
 
 The most steps was taken during interval 835, as indicated by the red dotted line in the trend.
 
-
 ## Imputing missing values
 
-There are 2304 missing values, which is a small proportion (4.4%) of the data.
-
-The missing data would be filled with the average value of the 5-minute interval.
+There are 2304 missing values, which is a small proportion (4.4%) of the data.  The missing data would be filled with the average value of the 5-minute interval.
 
 
 ```r
-# Create a new dataset that is equal to the original dataset but with the missing data filled in.
-activity.impute <- activity
-# Set the avg steps as integer
+# Create a new dataset
+        activity.impute <- activity
 
 # combine the datasets by interval and then update the columns
         activity.impute <- merge(x = activity, 
@@ -100,11 +101,10 @@ activity.impute <- activity
 ```
 
 ```r
-# Histogram
         steps.day.impute <- activity.impute %>% 
                 group_by(date) %>% 
                 summarise(DailySteps = sum(steps))
-        
+# Histogram       
         hist(steps.day.impute$DailySteps, 
                      col = "blue", 
                      xlab = "Steps", 
@@ -125,34 +125,24 @@ After imputing the missing values with the average of each of the 5-minute inter
 
 *  The median total number of steps per day reduced from 10,765 steps to 10,395 steps, indicated by the green line on the histogram.
 
-The overall effect is visible in the lower values of the distribution in the histogram.
+The overall effect is visible in the lower values of the histogram's distribution.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
 
 ```r
 # Add column to show type of day week/weekend
-table(weekdays(steps.day.impute$date))
-```
-
-```
-## 
-##    Friday    Monday  Saturday    Sunday  Thursday   Tuesday Wednesday 
-##         9         9         8         8         9         9         9
-```
-
-```r
-Weekend <- c("Saturday", "Sunday")
+        Weekend <- c("Saturday", "Sunday")
 
 activity.impute <- mutate(activity.impute, 
                            DayType = as.factor(
-                                   ifelse(weekdays(activity.impute$date) %in% Weekend,
-                                            "Weekend", "Week")))
-
+                                   ifelse(weekdays(activity.impute$date) 
+                                          %in% Weekend,"Weekend", "Week")))
+# Summary
 steps.interval.impute <- activity.impute %>% 
         group_by(interval, DayType) %>% 
         summarise(AvgSteps = as.integer(ceiling(mean(steps, na.rm = TRUE))))
-
+# Plot
 library(lattice)
 xyplot(steps.interval.impute$AvgSteps ~ steps.interval.impute$interval |
         steps.interval.impute$DayType,
